@@ -1,0 +1,11 @@
+{% extends "Basic.html" %}
+{% block title_extension %}Books{% endblock %}
+{% block content %}
+    <h1>here the books will lay</h1>
+{% endblock %}
+{% load static %}
+{% block post_js_extension %}
+    <script src="{% static 'JS Source/Books/Basic.js'%}"></script>
+    <script>show_hide_side()</script>
+    <script>check_user()</script>
+{% endblock %}
