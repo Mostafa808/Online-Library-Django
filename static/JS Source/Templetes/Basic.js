@@ -49,6 +49,49 @@ class basic_memory{
         return window.localStorage
     }
 }
+class server_gate{
+    static get_xml(){
+    }
+    static sign_in(username, password){
+        
+        fetch("/account-sign-in-action/",{
+            "method":"POST",
+            "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "username" : username, "password":password})
+        }).then(response=>response.json()).then(data=>{
+            console.log('The server response: ',data)
+        }).catch(error=>{
+            console.error("The request failed: ". error)
+        })
+    }
+    /**
+     * @param {user} user 
+     */
+    static sign_up(user){
+        
+        fetch("/account-sign-up-action/",{
+            "method":"POST",
+            "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "user" : user})
+        }).then(response=>response.json()).then(data=>{
+            console.log('The server response: ',data)
+        }).catch(error=>{
+            console.error("The request failed: ". error)
+        })
+    }
+    static getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+}
 class element_handler{
     static basic(content, type, id=null, classes=[]){
         /**@type {HTMLElement} */
@@ -109,9 +152,6 @@ class element_handler{
         return !(this.get_id(id)==null);
     }
     static goto_link(link){
-        if(recursive){
-            link = "../../"+link;
-        }
         this.link('',link,null,[],true)
     }
 }
@@ -315,22 +355,22 @@ function handle_tap(current_element){
     else if(current_element.id =="log-out"){
         basic_memory.del_object('current_user');
         current_user = null;
-        element_handler.goto_link('../home/');
+        element_handler.goto_link('/home/');
     }
     else if(current_element.id =="profile-settings"){
-        element_handler.goto_link('../profile/');
+        element_handler.goto_link('/profile/');
     }
     else if(current_element.id =="open-home"){
-        element_handler.goto_link('../home/');
+        element_handler.goto_link('/home/');
     }
     else if(current_element.id =="open-books"){
-        element_handler.goto_link('../books/');
+        element_handler.goto_link('/books/');
     }
     else if(current_element.id =="sign-in"){
-        element_handler.goto_link('../account-sign-in/');
+        element_handler.goto_link('/account-sign-in/');
     }
     else if(current_element.id =="sign-up"){
-        element_handler.goto_link('../account-sign-up/');
+        element_handler.goto_link('/account-sign-up/');
     }
     else{
         reset();
@@ -361,9 +401,6 @@ function update_website_view(){
         var css_location = "/static/CSS Source/Templetes/";
         if(Boolean(current_user_view)){
             main_head.removeChild(current_user_view);
-        }
-        if(recursive){
-            css_location = "../../" + css_location
         }
         if (Boolean(current_user.website_view)){
             main_head.appendChild(

@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 
 class BookDetails(models.Model):
     ISBN = models.CharField(max_length=13, primary_key=True) 
@@ -26,6 +28,30 @@ class User(models.Model):
 
     def __str__(self):
         return self.username
+    def is_valid_email(user:dict):
+        try:
+            validate_email(user["email"])
+            return True
+        except ValidationError:
+            return False
+    def pre_add_validation(user:dict):
+        output={"valid": True, "message":"This User is valid to be added"}
+        if not User.is_valid_email(user):
+            output["valid"]=False
+            output["message"]="Please, Enter a valid email address"
+            return output
+
+        if(User.objects.filter(username = user["username"])):
+            output["valid"]=False
+            output["message"]="This username is already existed"
+            return output
+        return output
+    def view_code(key):
+        view_codes = {"":0, "basic":1, "dark":2, "view1":3, "view2": 4}
+        if key in view_codes.keys():
+            return view_codes[key]
+        return -1
+
 
 class BookCopy(models.Model):
     ID = models.CharField(max_length=20, primary_key=True)
