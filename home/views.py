@@ -16,10 +16,16 @@ def books(request: wsgi.WSGIRequest):
     page = loader.get_template("Books.html")
     return HttpResponse(page.render())
 def account_sign_in(request: wsgi.WSGIRequest):
-    page = loader.get_template("Sign-Up.html")
+    page = loader.get_template("Sign-In.html")
     return HttpResponse(page.render())
 def account_sign_up(request: wsgi.WSGIRequest):
-    page = loader.get_template("Sign-In.html")
+    page = loader.get_template("Sign-Up.html")
+    return HttpResponse(page.render())
+def profile(request: wsgi.WSGIRequest):
+    page = loader.get_template("Profile.html")
+    return HttpResponse(page.render())
+def change_password (request: wsgi.WSGIRequest):
+    page = loader.get_template("ChangePassword.html")
     return HttpResponse(page.render())
 
 @csrf_exempt
@@ -28,9 +34,11 @@ def account_sign_in_action(request: wsgi.WSGIRequest):
         response_message = {"valid":True, "message":"You have signed in successfully!", "user": {}}
         current_token = dict(json.loads(request.body))
         print("Try signing in with: ", current_token)
-        current_user = User.objects.get(username = current_token["username"])
+        current_user = User.objects.filter(username = current_token["username"])
         if current_user:
+            current_user = User.objects.get(username = current_token["username"])
             if current_user.password==current_token["password"]:
+                current_user.website_view = User.view_code_reverse(current_user.website_view)
                 response_message["user"] = model_to_dict(current_user)
                 print("Signed In with: ", current_user)
             else:
@@ -46,7 +54,6 @@ def account_sign_in_action(request: wsgi.WSGIRequest):
 def account_sign_up_action(request: wsgi.WSGIRequest):
     if request.method=="POST":
         current_user = dict(json.loads(request.body))["user"]
-        print(current_user,end="\n\n")
         result = User.pre_add_validation(current_user)
         if(result["valid"]):
             try:
@@ -55,8 +62,8 @@ def account_sign_up_action(request: wsgi.WSGIRequest):
                     result = {"valid":False, "message":"The user view is not recognized."}
                 else:
                     current_user_model = User(username=current_user["username"], password=current_user["password"], full_name=current_user["full_name"], email=current_user["email"], address=current_user["address"], birth_date=current_user["birth_date"], is_admin=current_user["is_admin"], profile_image_link=current_user["profile_image_link"], website_view=current_user["website_view"])
-                    print("Added: ", current_user_model)
                     current_user_model.save()
+                    print("Added: ", current_user_model)
                     result = {"valid":True, "message":"You have signed up successfully!"}
             except Exception as error:
                 print(error)
@@ -64,3 +71,42 @@ def account_sign_up_action(request: wsgi.WSGIRequest):
         return(JsonResponse(result))
     else:
         return(JsonResponse({"error":"invalid request"}))
+
+@csrf_exempt
+def account_update_action(request: wsgi.WSGIRequest):
+    if request.method=="POST":
+        current_user:dict = dict(json.loads(request.body))["user"]
+        result = User.validate_permissions(current_user)
+        if(not result["valid"]):
+            return(JsonResponse(result))
+        result = User.pre_add_validation(current_user, False)
+        if(result["valid"]):
+            try:
+                current_user["website_view"] = User.view_code(current_user["website_view"])
+                if current_user["website_view"]==-1:
+                    result = {"valid":False, "message":"The user view is not recognized."}
+                else:
+                    current_user_model = User.objects.get(username=current_user["username"])
+                    if "new_password" in current_user.keys():
+                        current_user_model.password=current_user["new_password"]
+                    else:
+                        current_user_model.password=current_user["password"]
+                    current_user_model.full_name=current_user["full_name"]
+                    current_user_model.email=current_user["email"]
+                    current_user_model.address=current_user["address"]
+                    current_user_model.birth_date=current_user["birth_date"]
+                    current_user_model.is_admin=current_user["is_admin"]
+                    current_user_model.profile_image_link=current_user["profile_image_link"]
+                    current_user_model.website_view=current_user["website_view"]                    
+                    current_user_model.save()
+                    print("Updated: ", current_user_model)
+                    user_json = model_to_dict(current_user_model)
+                    user_json["website_view"] = User.view_code_reverse(current_user_model.website_view)
+                    result = {"valid":True, "message":"You have updated your profile successfully!", "user":user_json}
+            except Exception as error:
+                print(error)
+                result = {"valid":False, "message":"Failed to update the user to the database"}
+        return(JsonResponse(result))
+    else:
+        return(JsonResponse({"error":"invalid request"}))
+

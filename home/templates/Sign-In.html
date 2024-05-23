@@ -1,5 +1,37 @@
 {% extends "Basic.html" %}
-{% block title_extension %}Sign-Ip{% endblock %}
+{% block title_extension %}Sign-Up{% endblock %}
+{% load static %}
+{% block css_extension %}
+    <link rel="stylesheet" href="{% static 'CSS Source/Profile_Settings.css'%}">
+{% endblock %}
+{% block js_extension %}
+    <script src="{% static 'JS Source/Profile_Settings.js' %}"></script>
+{% endblock %}
+
 {% block content %}
-    <h1>welcome</h1>
+    <h1>Sign-In</h1>
+    <form class="sign-in-form">
+        <table cellpadding="2">
+            <tbody>
+                <tr>
+                    <td><label for ="user-name">UserName: </label></td>
+                    <td><input type="text" id="user-name" name="user-name" autocomplete="username" required></td>
+                </tr>
+                <tr>
+                    <td><label for ="password">Password: </label></td>
+                    <td><input type="password" id="password" name="password" autocomplete="password" required></td>
+                </tr>
+                <tr>
+                    <input type="button" id="create-account" value="Create Account" onclick="profile_handle_buttons(this)">
+                </tr>
+                <tr>
+                    <hr/>
+                </tr>
+                <tr>
+                    <input type="button" id="sign-in-button" value="Sign-In" onclick="profile_handle_buttons(this)">
+                </tr>
+
+            </tbody>
+        </table>
+    </form>
 {% endblock %}

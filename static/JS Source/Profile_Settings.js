@@ -9,39 +9,32 @@ function profile_handle_buttons(current_element){
         var website_view = element_handler.get_id("website-view");
         if(Boolean(full_name.value)) current_user.full_name = full_name.value;
         if(Boolean(email.value)) current_user.email = email.value;
-        current_user.birth_date = new Date(birth_date.value).toISOString();
+        current_user.birth_date = new Date(birth_date.value).toISOString().split("T")[0];
         if(Boolean(address.value)) current_user.address = address.value;
         current_user.is_admin = is_admin.checked;
-        if(Boolean(profile_image.value)) current_user.profile_image = profile_image.value;
+        if(Boolean(profile_image.value)) current_user.profile_image_link = profile_image.value;
         
         current_user.website_view = website_view.value;
-    
-        
-        users_handler.set_user(current_user, true);
-        element_handler.goto_link("../account-profile/");
+
+        server_gate.update_user(current_user);
 
     }else if(current_element.id=="cancel"){
-        element_handler.goto_link("../account-profile/");
+        element_handler.goto_link("/profile/");
     }
     else if(current_element.id=="change-password"){
-        element_handler.goto_link("../account-profile-change-password/");
+        element_handler.goto_link("/profile-change-password/");
     }
     else if(current_element.id=="save-password"){
         var oldPassword = element_handler.get_id("your-old-password");
         var newPassword = element_handler.get_id("new-password");
         var confirmPassword = element_handler.get_id("confirm-password");
-        if(current_user.password==oldPassword.value){
-            if(newPassword.value==confirmPassword.value){
-                current_user.password = newPassword.value;
-                users_handler.set_user(current_user, true);
-                element_handler.goto_link("../account-profile/")
-            }
-            else{
-                alert("The confirmation of the new password is wrong. check it carefully.")
-            }
-        }else{
-            window.alert("wrong old password");
+        if(newPassword.value!=confirmPassword.value){
+            window.alert("The Password confirmation is wrong")
+            return
         }
+        test_user = current_user
+        test_user["password"]=oldPassword.value
+        server_gate.update_user(test_user, newPassword.value)
     }
     else if(current_element.id == "sign-in-button"){
         var username = element_handler.get_id("user-name");
@@ -50,25 +43,13 @@ function profile_handle_buttons(current_element){
             ["username","password"])){
                 return false;
         }
-        var userIndex = users_handler.search(username.value);
-        alert_break();
-        if (userIndex==null){
-            window.alert("Wrong Username or Password");
-        }
-        else if(users[userIndex].password==password.value){
-            current_user = users[userIndex];
-            basic_memory.set_object("current_user",current_user);
-            element_handler.goto_link('../home');
-        }
-        else{
-            window.alert("Wrong Username or Password");
-        }
+        server_gate.sign_in(username.value, password.value)
     }
     else if(current_element.id == "create-account"){
-        element_handler.goto_link("../account-sign-up/");
+        element_handler.goto_link("/account-sign-up/");
     }
     else if(current_element.id == "have-account"){
-        element_handler.goto_link("../account-sign-in/");
+        element_handler.goto_link("/account-sign-in/");
     }
     else if(current_element.id=="sign-up-button"){
         var current_user_name = element_handler.get_id("user-name");
@@ -88,17 +69,13 @@ function profile_handle_buttons(current_element){
         if(Boolean(password.value)) current_user.password = password.value;
         if(Boolean(full_name.value)) current_user.full_name = full_name.value;
         if(Boolean(email.value)) current_user.email = email.value;
-        current_user.birth_date = new Date(birth_date.value).toISOString();
+        current_user.birth_date = new Date(birth_date.value).toISOString().split('T')[0];
         if(Boolean(address.value)) current_user.address = address.value;
         current_user.is_admin = is_admin.checked;
         
-        if (users_handler.search(current_user_name.value)!=null){
-            window.alert("This username is already taken.")
-        }
-        else{
-            users_handler.set_user(current_user, true);
-            element_handler.goto_link("../home/")
-        }
+        server_gate.sign_up(current_user)
+        
+        
     }
 }
 function current_data(){
@@ -115,6 +92,6 @@ function current_data(){
     birth_date.valueAsDate = new Date(current_user.birth_date);
     if(Boolean(current_user.address)) address.placeholder = current_user.address;
     is_admin.checked = current_user.is_admin;
-    if(Boolean(current_user.profile_image)) profile_image.placeholder = current_user.profile_image;
+    if(Boolean(current_user.profile_image_link)) profile_image.placeholder = current_user.profile_image_link;
     if(Boolean(current_user.website_view)) website_view.value = current_user.website_view;
 }

@@ -59,6 +59,12 @@ class server_gate{
             "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "username" : username, "password":password})
         }).then(response=>response.json()).then(data=>{
             console.log('The server response: ',data)
+            if(data["valid"]==false){
+                window.alert(data["message"])
+            }else{
+                users_handler.set_user(data["user"]);
+                element_handler.goto_link('/home/');
+            }
         }).catch(error=>{
             console.error("The request failed: ". error)
         })
@@ -73,6 +79,32 @@ class server_gate{
             "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "user" : user})
         }).then(response=>response.json()).then(data=>{
             console.log('The server response: ',data)
+            if(data["valid"]==false){
+                window.alert(data["message"])
+            }else{
+                users_handler.set_user(current_user);
+                element_handler.goto_link("/home/")
+            }
+        }).catch(error=>{
+            console.error("The request failed: ". error)
+        })
+    }
+    static update_user(user, new_password=null){
+        
+        if (new_password!=null){
+            user["new_password"]=new_password
+        }
+        fetch("/account-update-action/",{
+            "method":"POST",
+            "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "user" : user})
+        }).then(response=>response.json()).then(data=>{
+            console.log('The server response: ',data)
+            if(data["valid"]==false){
+                window.alert(data["message"])
+            }else{
+                users_handler.set_user(data["user"]);
+                element_handler.goto_link("/profile/");
+            }
         }).catch(error=>{
             console.error("The request failed: ". error)
         })
@@ -157,48 +189,16 @@ class element_handler{
 }
 class users_handler{
     /** @param {user} newuser */
-    static set_user(newuser, current=false){
-        var exists = this.search(newuser.username);
-        if (exists!=null){
-            users[exists] = newuser;
-        }
-        else{
-            users.push(newuser);
-        }
-        if(current){
-            current_user = newuser;
-            basic_memory.set_object("current_user",current_user);
-        }
-        this.save_users();
+    static set_user(current_user){
+        basic_memory.set_object("current_user",current_user);
     }
     /**
      * 
      * @param {user} oldUser 
      */
-    static del_user(oldUser){
-        var exists = this.search(oldUser.username);
-        if (exists!=null){
-            users.splice(exists, 1);
-            this.save_users();
-        }
-
-    }
-    static save_users(){
-        basic_memory.set_object("users", users)
-    }
-    static search(username){
-        var index = 0;
-        if(users != null){
-            for(let this_user of users){
-                if(this_user.username==username){
-                    return index;
-                }
-                index+=1;
-            }
-        }
-        return null;
-    }
-    
+    static del_user(){
+        basic_memory.del_object("current_user");
+    }    
 }
 // form handler
 class form_handler{
@@ -219,9 +219,6 @@ class form_handler{
         if(this.is_required(field) && !Boolean(field.value)){
             window.alert("Please enter: " + field_name);
             return false;
-        }
-        if (field.type=="email"){
-            window.alert("found an email" + field_name);//TODO
         }
         return true;
     }
@@ -387,8 +384,8 @@ function reset(){
 // update profile image
 function update_profile_image(){
     if(Boolean(current_user)){
-        if (Boolean(current_user.profile_image)){
-            document.getElementById("open-profile").src = current_user.profile_image;
+        if (Boolean(current_user.profile_image_link)){
+            document.getElementById("open-profile").src = current_user.profile_image_link;
         }
     }
 }
