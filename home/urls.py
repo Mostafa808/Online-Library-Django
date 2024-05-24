@@ -10,4 +10,9 @@ urlpatterns =[
     path('account-update-action/', views.account_update_action, name="Update-Action"),
     path('profile/', views.profile, name="profile"),
     path('profile-change-password/', views.change_password, name="Change-Password"),
+    path('books-admin/', views.books_admin, name="books-admin"),
+    path('books-user/', views.books_user, name="books-user"),
+    path('add-book/', views.add_book, name="add-book"),
+    path('books-add-book-action/', views.books_add_book_action, name="books-add-book-action"),
+    path('books-search-action/', views.books_search_action, name="books-search-action"),
 ]

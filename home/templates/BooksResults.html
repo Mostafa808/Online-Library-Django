@@ -1,0 +1,23 @@
+    <div id="books-list">
+        <div class="book">
+            <h2>ISBN: 978-1908745903</h2>
+            <h2>Tomb of Sand</h2>
+            <p>Author: Geetanjali Shree</p>
+            <p>Category: Literature</p>
+            <p>Description: The story is centred on a family in Delhi, with the focus on 80-year old widowed Ma.</p>
+            <p>Publisher: Tilted Axis Press</p>
+            <p>Published Date: March 30, 2021</p>
+        </div>
+        <div class="bookCopy">
+            <h2>ISBN: 978-1908745903</h2>
+            <h2>Cursed Bunny</h2>
+            <p>Author: Bora Chung</p>
+            <p>Category: Short Stories</p>
+            <p>Description: A journey of revenge against the family of a wealthy CEO who has destroyed lives with his greedy actions</p>
+            <p>Publisher: Honford Star</p>
+            <p>Published Date: July 15, 2021</p>
+        </div>
+    </div>
+{% for copy in books %}
+    <li>{{ copy.ID }} {{ copy.details.title }} {{ copy.details.category }} {{ copy.details.description }} {{ copy.details.publisher }} {{ copy.details.published_date }} {{ copy.printed_date }} {{ copy.is_available }}</li>
+{% endfor %}

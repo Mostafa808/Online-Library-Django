@@ -109,6 +109,20 @@ class server_gate{
             console.error("The request failed: ". error)
         })
     }
+    static add_book(current_book_copy, current_book_details){
+        fetch("/books-add-book-action/",{
+            "method":"POST",
+            "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "user": current_user, "current_book_copy" : current_book_copy, "current_book_details": current_book_details})
+        }).then(response=>response.json()).then(data=>{
+            console.log('The server response: ',data)
+            window.alert(data["message"])
+            if(data["valid"]==true){
+                //go to books
+            }
+        }).catch(error=>{
+            console.error("The request failed: ". error)
+        })
+    }
     static getCookie(name) {
         var cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -122,6 +136,108 @@ class server_gate{
             }
         }
         return cookieValue;
+    }
+}
+class search_data_model{
+    constructor(title='', category='', author='', is_available=false, is_borrowed=false){
+        this.title = title;
+        this.category = category;
+        this.author = author;
+        this.is_available = is_available;
+        this.is_borrowed = is_borrowed;
+    }
+}
+// book details and book copy
+class book_details {
+    constructor(ISBN, title, authors, category, description, publisher, publishedDate) {
+        this.ISBN = ISBN;
+        this.title = title;
+        this.authors = authors;
+        this.category = category;
+        this.description = description;
+        this.publisher = publisher;
+        this.published_date = new Date(publishedDate);
+    }
+}
+class book_copy {
+    constructor(ID, details, printedDate, isAvailable=true, borrowedBy=null, dueDate=null) {
+        this.ID = ID;
+        this.details = details;
+        this.printed_date = new Date(printedDate);
+        this.is_available = isAvailable;
+        this.borrowed_by = borrowedBy;
+        this.due_date = dueDate ? new Date(dueDate) : null;
+    }
+}
+
+
+// global settings
+var recursive = false;
+//memory model
+/** @type {user} */
+var current_user = basic_memory.get_object("current_user");
+
+/** @type {search_data_model} */
+var search_data = basic_memory.get_object("search_data");
+
+/** @type {book_details} */
+var current_selected_book = basic_memory.get_object("current_selected_book");
+/** @type {book_copy} */
+var current_selected_book_copy = basic_memory.get_object("current_selected_book_copy");
+
+
+// edit book flag
+var edit_book_flag = basic_memory.get_object("edit_book_flag");
+
+class book_UI{
+    static init_page(){
+        if(!search_data){
+            return;
+        }
+        document.getElementById("title-search-field").value = search_data.title;
+        document.getElementById("category-search-field").value = search_data.category;
+        document.getElementById("author-search-field").value = search_data.author;
+        document.getElementById("available-only").checked = search_data.is_available;
+        document.getElementById("borrowed").checked = search_data.is_borrowed;
+        //TODO xmlHttprequest
+    }
+    static set_current_book(current_details, current_copy){
+        current_selected_book = current_details
+        current_selected_book_copy = current_copy
+    }
+    static search_books(reload_flag = false){
+        this.get_search_data();
+        if(reload_flag){
+            element_handler.goto_link("/books/")
+        }else{
+            let books = new XMLHttpRequest();
+            books.open("POST", "/books-search-action/");
+            books.setRequestHeader("Content-Type", "application/json");
+            books.onload = function(){
+                if(books.status==200){
+                    let books_elements = books.responseText;
+                    console.log(books_elements);
+                    element_handler.get_id("books_results").innerHTML = books_elements;
+                }else{
+                    console.error("Error:", books.statusText)
+                }
+            }
+            books.send(JSON.stringify({"csrfmiddlewaretoken": server_gate.getCookie("csrftoken"), "user":current_user, "search_data":search_data}))
+            
+        }
+    }
+    static get_search_data(){
+        search_data = new search_data_model();
+        search_data.title = document.getElementById("title-search-field").value;
+        if(!search_data.title){
+            search_data.title = document.getElementById("SearchField").value;
+            document.getElementById("title-search-field").value = search_data.title;
+        }
+        search_data.category = document.getElementById("category-search-field").value;
+        search_data.author = document.getElementById("author-search-field").value;
+        search_data.is_available = document.getElementById("available-only").checked
+        search_data.is_borrowed = document.getElementById("borrowed").checked
+        basic_memory.set_object("search_data", search_data)
     }
 }
 class element_handler{
@@ -236,34 +352,6 @@ class form_handler{
         return true;
     }
 }
-// book details and book copy
-class book_details {
-    constructor(ISBN, title, authors, category, description, publisher, publishedDate) {
-        this.ISBN = ISBN;
-        this.title = title;
-        this.authors = authors;
-        this.category = category;
-        this.description = description;
-        this.publisher = publisher;
-        this.publishedDate = new Date(publishedDate);
-    }
-}
-class book_copy {
-    constructor(ID, details, printedDate, isAvailable, borrowedBy, dueDate) {
-        this.ID = ID;
-        this.details = details;
-        this.printed_date = new Date(printedDate);
-        this.is_available = isAvailable;
-        this.borrowed_by = borrowedBy;
-        this.due_date = dueDate ? new Date(dueDate) : null;
-    }
-}
-
-// global settings
-var recursive = false;
-//memory model
-/** @type {user} */
-var current_user = basic_memory.get_object("current_user");
 
 // UI Functions
 function scroll_manager(){
@@ -368,6 +456,45 @@ function handle_tap(current_element){
     }
     else if(current_element.id =="sign-up"){
         element_handler.goto_link('/account-sign-up/');
+    }
+    else if(current_element.id=="Search" || current_element.id == "advanced-search"){
+        book_UI.search_books(current_element.id=="Search");
+    }
+    else if(current_element.id=="add-book"){
+        if(current_selected_book){
+            basic_memory.del_object("current_selected_book")
+        }
+        if(current_selected_book_copy){
+            basic_memory.del_object("current_selected_book_copy")
+        }
+        if(edit_book_flag){
+            basic_memory.del_object("edit_book_flag")
+        }
+        element_handler.goto_link('/add-book/');
+    }
+    else if(current_element.classList.contains("borrow-book-button") || current_element.classList.contains("return-book-button")){
+        
+        
+    }else if(current_element.classList.contains("edit-book")){
+        
+    }else if(current_element.classList.contains("delete-book")){
+        
+    }else if(current_element.id=="save-book"){
+        current_selected_book = new book_details(
+            element_handler.get_id("isbn").value,
+            element_handler.get_id("book-title").value,
+            element_handler.get_id("authors").value.split(';'),
+            element_handler.get_id("category").value,
+            element_handler.get_id("description").value,
+            element_handler.get_id("publisher").value,
+            element_handler.get_id("published-date").value
+        );
+        current_selected_book_copy = new book_copy(
+            element_handler.get_id("copy-id").value,
+            element_handler.get_id("isbn").value,
+            element_handler.get_id("print-date").value
+        );
+        server_gate.add_book(current_selected_book_copy, current_selected_book)
     }
     else{
         reset();

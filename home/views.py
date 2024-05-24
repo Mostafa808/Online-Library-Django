@@ -27,6 +27,15 @@ def profile(request: wsgi.WSGIRequest):
 def change_password (request: wsgi.WSGIRequest):
     page = loader.get_template("ChangePassword.html")
     return HttpResponse(page.render())
+def books_admin(request: wsgi.WSGIRequest):
+    page = loader.get_template("BooksAdmin.html")
+    return HttpResponse(page.render())
+def books_user(request: wsgi.WSGIRequest):
+    page = loader.get_template("BooksUser.html")
+    return HttpResponse(page.render())
+def add_book(request: wsgi.WSGIRequest):
+    page = loader.get_template("AddBook.html")
+    return HttpResponse(page.render())
 
 @csrf_exempt
 def account_sign_in_action(request: wsgi.WSGIRequest):
@@ -110,3 +119,71 @@ def account_update_action(request: wsgi.WSGIRequest):
     else:
         return(JsonResponse({"error":"invalid request"}))
 
+@csrf_exempt
+def books_add_book_action(request: wsgi.WSGIRequest):
+    if request.method=="POST":
+        current_user:dict = dict(json.loads(request.body))["user"]
+        result = User.validate_permissions(current_user)
+        if(not result["valid"]):
+            return(JsonResponse(result))
+        current_book_copy: dict = dict(json.loads(request.body))["current_book_copy"]
+        current_book_details: dict = dict(json.loads(request.body))["current_book_details"]
+        result = BookCopy.pre_add_validation(dict(json.loads(request.body))["current_book_copy"])
+        if(result["valid"]):
+            result = BookDetails.pre_add_validation(current_book_details)
+            if(result["valid"]):
+                if not result["reference"]:
+                    new_details = BookDetails(
+                        ISBN=current_book_details["ISBN"],
+                        title=current_book_details["title"],
+                        authors=current_book_details["authors"],
+                        category=current_book_details["category"],
+                        description=current_book_details["description"],
+                        publisher=current_book_details["publisher"],
+                        published_date=current_book_details["published_date"].split("T")[0]
+                        )
+                    new_details.save()
+                ref_details = BookDetails.objects.get(ISBN=current_book_details["ISBN"])
+                new_copy = BookCopy(
+                    ID=current_book_copy["ID"],
+                    details=ref_details,
+                    printed_date=current_book_copy["printed_date"].split("T")[0]
+                    )
+                new_copy.save()
+            
+        return(JsonResponse(result))
+    else:
+        return(JsonResponse({"error":"invalid request"}))
+
+@csrf_exempt
+def books_search_action (request: wsgi.WSGIRequest):
+    if request.method=="POST":
+        print(request.body)
+        current_user:dict = dict(json.loads(request.body))["user"]
+        result = User.validate_permissions(current_user)
+        if(not result["valid"]):
+            return(JsonResponse(result))
+        search_data = dict(json.loads(request.body))["search_data"]
+        books_result = BookDetails.objects.filter(
+            title__icontains=search_data["title"],
+            category__icontains=search_data["category"],
+            authors__icontains=search_data["author"]
+            )
+        
+        list_details = [] 
+        for key in books_result.values_list("ISBN"):
+            list_details.append(key[0])
+        print(list_details)
+        copies_result = BookCopy.objects.filter(details__in=list_details)
+        if search_data["is_available"]:
+            copies_result = copies_result.filter(is_available=True)
+        if search_data["is_borrowed"]:
+            copies_result = copies_result.exclude(borrowed_by_id__isnull=True)
+        
+        context: dict = {
+            "books": copies_result,
+        }
+
+        return(render(request, 'BooksResults.html', context))
+    else:
+        return(JsonResponse({"error":"invalid request"}))

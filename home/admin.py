@@ -8,7 +8,7 @@ class BookDetailsAdmin(admin.ModelAdmin):
     
 
 class BookCopyAdmin(admin.ModelAdmin):
-    list_display = ("get_title", "printed_date","is_available","borrowed_by","due_date")
+    list_display = ("get_title", "ID", "printed_date","is_available","borrowed_by","due_date")
     def get_title(self, copy):
         return copy.details.title
     

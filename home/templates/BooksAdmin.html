@@ -1,0 +1,28 @@
+{% extends "Basic.html" %}
+{% load static %}
+
+{% block title_extension %}Books{% endblock %}
+
+{% block css_extension %}
+    <link rel="stylesheet" href="{% static '/CSS Source/Books/Basic.css'%}">
+{% endblock %}
+{% block js_extension %}
+    <script src="{% static '/JS Source/Books/ViewBooks.js'%}"></script>
+{% endblock %}
+
+{% block content %}
+    {% include "AdvancedSearch.html" %}
+    <br/>
+    <div>
+        <button type="button" title="Add Book" id= "add-book" onclick="handle_tap(this)">
+            Add Book
+        </button>
+    </div>
+    <hr/>
+    <div id="books_results"></div>
+{% endblock %}
+
+{% block post_js_extension %}
+    <script>show_hide_side()</script>
+    <script>book_UI.init_page()</script>
+{% endblock %}
