@@ -19,5 +19,5 @@
         </div>
     </div>
 {% for copy in books %}
-    <li>{{ copy.ID }} {{ copy.details.title }} {{ copy.details.category }} {{ copy.details.description }} {{ copy.details.publisher }} {{ copy.details.published_date }} {{ copy.printed_date }} {{ copy.is_available }}</li>
+    <li>{{ copy.ID }} {{ copy.details.ISBN }} {{ copy.details.title }} {{ copy.details.category }} {{ copy.details.description }} {{ copy.details.publisher }} {{ copy.details.published_date }} {{ copy.printed_date }} {{ copy.is_available }}</li>
 {% endfor %}
