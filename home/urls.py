@@ -15,4 +15,10 @@ urlpatterns =[
     path('add-book/', views.add_book, name="add-book"),
     path('books-add-book-action/', views.books_add_book_action, name="books-add-book-action"),
     path('books-search-action/', views.books_search_action, name="books-search-action"),
+    path('get-current-book/', views.get_current_book, name="get-current-book"),
+    path('borrow-book/', views.borrow_book, name="borrow-book"),
+    path('return-book/', views.return_book, name="return-book"),
+    path('delete-book/', views.delete_book, name="delete-book"),
+    path('books-update-book-action/', views.books_update_book_action, name="books-update-book-action"),
+    path('edit-book/', views.add_book, name="edit-book"),
 ]

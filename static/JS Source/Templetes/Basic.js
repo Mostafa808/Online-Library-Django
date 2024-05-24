@@ -52,6 +52,80 @@ class basic_memory{
 class server_gate{
     static get_xml(){
     }
+    static borrow_book(copy_id){
+        fetch("/borrow-book/",{
+            "method":"POST",
+            "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "user": current_user, "copy_id": copy_id})
+        }).then(response=>response.json()).then(data=>{
+            console.log('The server response: ',data)
+            window.alert(data["message"])
+            if(data["valid"]==true){
+                book_UI.search_books();
+            }else{
+
+            }
+            
+        }).catch(error=>{
+            console.error("The request failed: ". error)
+        })
+    }
+    static return_book(copy_id){
+        fetch("/return-book/",{
+            "method":"POST",
+            "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "user": current_user, "copy_id": copy_id})
+        }).then(response=>response.json()).then(data=>{
+            console.log('The server response: ',data)
+            window.alert(data["message"])
+
+            if(data["valid"]==true){
+                book_UI.search_books();
+            }else{
+            }
+            
+        }).catch(error=>{
+            console.error("The request failed: ". error)
+        })
+    }
+    static delete_book(copy_id){
+        fetch("/delete-book/",{
+            "method":"POST",
+            "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "user": current_user, "copy_id": copy_id})
+        }).then(response=>response.json()).then(data=>{
+            console.log('The server response: ',data)
+            window.alert(data["message"])
+
+            if(data["valid"]==true){
+                book_UI.search_books();
+            }else{
+
+            }
+            
+        }).catch(error=>{
+            console.error("The request failed: ". error)
+        })
+    }
+    static init_current_book(copy_id){
+        fetch("/get-current-book/",{
+            "method":"POST",
+            "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "user": current_user, "copy_id": copy_id})
+        }).then(response=>response.json()).then(data=>{
+            console.log('The server response: ',data)
+            if(data["valid"]==true){
+                current_selected_book = data["current_selected_book"]
+                current_selected_book_copy = data["current_selected_book_copy"]
+                basic_memory.set_object("current_selected_book", current_selected_book)
+                basic_memory.set_object("current_selected_book_copy", current_selected_book_copy)
+                edit_book_flag = true
+                basic_memory.set_object("edit_book_flag", edit_book_flag)
+                element_handler.goto_link("/edit-book/")
+            }else{
+                window.alert(data["message"])
+            }
+            
+        }).catch(error=>{
+            console.error("The request failed: ". error)
+        })
+    }
     static sign_in(username, password){
         
         fetch("/account-sign-in-action/",{
@@ -110,14 +184,19 @@ class server_gate{
         })
     }
     static add_book(current_book_copy, current_book_details){
-        fetch("/books-add-book-action/",{
+        let link= "/books-add-book-action/"
+        if (edit_book_flag){
+            link= "/books-update-book-action/"
+        }
+        
+        fetch(link,{
             "method":"POST",
             "body":JSON.stringify({"csrfmiddlewaretoken": this.getCookie("csrftoken"), "user": current_user, "current_book_copy" : current_book_copy, "current_book_details": current_book_details})
         }).then(response=>response.json()).then(data=>{
             console.log('The server response: ',data)
             window.alert(data["message"])
             if(data["valid"]==true){
-                //go to books
+                element_handler.goto_link("/books/")
             }
         }).catch(error=>{
             console.error("The request failed: ". error)
@@ -199,7 +278,18 @@ class book_UI{
         document.getElementById("author-search-field").value = search_data.author;
         document.getElementById("available-only").checked = search_data.is_available;
         document.getElementById("borrowed").checked = search_data.is_borrowed;
-        //TODO xmlHttprequest
+        let books = new XMLHttpRequest();
+        books.open("POST", "/books-search-action/");
+        books.setRequestHeader("Content-Type", "application/json");
+        books.onload = function(){
+            if(books.status==200){
+                let books_elements = books.responseText;
+                element_handler.get_id("books_results").innerHTML = books_elements;
+            }else{
+                console.error("Error:", books.statusText)
+            }
+        }
+        books.send(JSON.stringify({"csrfmiddlewaretoken": server_gate.getCookie("csrftoken"), "user":current_user, "search_data":search_data}))
     }
     static set_current_book(current_details, current_copy){
         current_selected_book = current_details
@@ -216,7 +306,6 @@ class book_UI{
             books.onload = function(){
                 if(books.status==200){
                     let books_elements = books.responseText;
-                    console.log(books_elements);
                     element_handler.get_id("books_results").innerHTML = books_elements;
                 }else{
                     console.error("Error:", books.statusText)
@@ -472,13 +561,39 @@ function handle_tap(current_element){
         }
         element_handler.goto_link('/add-book/');
     }
-    else if(current_element.classList.contains("borrow-book-button") || current_element.classList.contains("return-book-button")){
-        
-        
-    }else if(current_element.classList.contains("edit-book")){
-        
+    else if(current_element.classList.contains("borrow-action")){
+        if(current_element.parentElement){
+            current_element = current_element.parentElement;
+            if(current_element.parentElement){
+                current_element = current_element.parentElement;
+                server_gate.borrow_book(current_element.id.split('-')[0]);
+            }
+        }
+    }else if(current_element.classList.contains("return-action")){
+        if(current_element.parentElement){
+            current_element = current_element.parentElement;
+            if(current_element.parentElement){
+                current_element = current_element.parentElement;
+                server_gate.return_book(current_element.id.split('-')[0]);
+            }
+        }
+    }
+    else if(current_element.classList.contains("edit-book")){
+        if(current_element.parentElement){
+            current_element = current_element.parentElement;
+            if(current_element.parentElement){
+                current_element = current_element.parentElement;
+                server_gate.init_current_book(current_element.id.split('-')[0]);
+            }
+        }
     }else if(current_element.classList.contains("delete-book")){
-        
+        if(current_element.parentElement){
+            current_element = current_element.parentElement;
+            if(current_element.parentElement){
+                current_element = current_element.parentElement;
+                server_gate.delete_book(current_element.id.split('-')[0]);
+            }
+        }
     }else if(current_element.id=="save-book"){
         current_selected_book = new book_details(
             element_handler.get_id("isbn").value,

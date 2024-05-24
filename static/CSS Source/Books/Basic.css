@@ -75,38 +75,33 @@ article > div > *{
     background-color: aquamarine;
 }
 /*Results of the tasks sections*/
-.tasks-list > div{
+.books-list > div{
     width: 80%;
     left: 10%;
     position: relative;
 }
-.task-item{
+.book-item{
     background-color: aqua;
     border-radius: 10px;
     margin: 1.5em;
     text-align: left;
     padding: 1.5em;
 }
-.task-title{
+.book-title{
     text-align: center;
     font-size: large;
 }
-.priority-none{
-    color: inherit;
-}
-.priority-low{
+.available{
     color: rgb(88, 143, 6);
 }
-.priority-medium{
-    color: rgb(6, 25, 151);
-}
-.priority-high{
+
+.not-available{
     color: rgb(213, 12, 12);
 }
-.task-actions{
+.book-actions{
     display: flex;
 }
-.task-actions > *{
+.book-actions > *{
     margin: 2px;
     flex: 1;
 }

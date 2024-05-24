@@ -35,6 +35,29 @@ class BookDetails(models.Model):
             return {"valid":False, "message":"The book must have published date", "reference": False}
         
         return output
+    def pre_update_validation(book_details:dict):
+        output = {"valid":True, "message":"The book copy and its details have been added.", "reference": False}
+        if not book_details["ISBN"]:
+            return {"valid":False, "message":"The book must have ISBN", "reference": False}
+        
+        if BookDetails.objects.filter(ISBN=book_details["ISBN"]):
+            return {"valid":True, "message":"The Book Details have been updated", "reference": True}
+        
+        if not book_details["title"]:
+            return {"valid":False, "message":"The book must have title", "reference": False}
+        authors: list = book_details["authors"]
+        if not book_details["authors"][0]:
+            return {"valid":False, "message":"The book must have authors", "reference": False}
+        if not book_details["category"]:
+            return {"valid":False, "message":"The book must have category", "reference": False}
+        if not book_details["description"]:
+            return {"valid":False, "message":"The book must have description", "reference": False}
+        if not book_details["publisher"]:
+            return {"valid":False, "message":"The book must have publisher", "reference": False}
+        if not book_details["published_date"]:
+            return {"valid":False, "message":"The book must have published date", "reference": False}
+        
+        return output
 
 
 class User(models.Model):

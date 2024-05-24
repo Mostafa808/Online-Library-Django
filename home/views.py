@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
 from django.forms.models import model_to_dict
 import json
+import datetime
 
 from django.template import loader
 # Create your views here.
@@ -156,6 +157,56 @@ def books_add_book_action(request: wsgi.WSGIRequest):
         return(JsonResponse({"error":"invalid request"}))
 
 @csrf_exempt
+def books_update_book_action(request: wsgi.WSGIRequest):
+    if request.method=="POST":
+        current_user:dict = dict(json.loads(request.body))["user"]
+        result = User.validate_permissions(current_user)
+        if(not result["valid"]):
+            return(JsonResponse(result))
+        current_book_copy: dict = dict(json.loads(request.body))["current_book_copy"]
+        current_book_details: dict = dict(json.loads(request.body))["current_book_details"]
+        result = BookCopy.pre_add_validation(dict(json.loads(request.body))["current_book_copy"], False)
+        if(result["valid"]):
+            result = BookDetails.pre_update_validation(current_book_details)
+            if(result["valid"]):
+                if not result["reference"]:
+                    new_details = BookDetails(
+                        ISBN=current_book_details["ISBN"],
+                        title=current_book_details["title"],
+                        authors=current_book_details["authors"],
+                        category=current_book_details["category"],
+                        description=current_book_details["description"],
+                        publisher=current_book_details["publisher"],
+                        published_date=current_book_details["published_date"].split("T")[0]
+                        )
+                    new_details.save()
+                
+                ref_details = BookDetails.objects.get(ISBN=current_book_details["ISBN"])
+                ref_details.ISBN=current_book_details["ISBN"]
+                ref_details.title=current_book_details["title"]
+                ref_details.authors=current_book_details["authors"]
+                ref_details.category=current_book_details["category"]
+                ref_details.description=current_book_details["description"]
+                ref_details.publisher=current_book_details["publisher"]
+                ref_details.published_date=current_book_details["published_date"].split("T")[0]
+                ref_details.save()
+                if not BookCopy.objects.filter(ID=current_book_copy["ID"]):
+                    new_copy = BookCopy(
+                        ID=current_book_copy["ID"],
+                        details=ref_details,
+                        printed_date=current_book_copy["printed_date"].split("T")[0]
+                        )
+                    new_copy.save()
+                current_copy_model = BookCopy.objects.get(ID=current_book_copy["ID"])
+                current_copy_model.ID=current_book_copy["ID"]
+                current_copy_model.details=ref_details
+                current_copy_model.printed_date=current_book_copy["printed_date"].split("T")[0]
+                current_copy_model.save()
+
+        return(JsonResponse(result))
+    else:
+        return(JsonResponse({"error":"invalid request"}))
+@csrf_exempt
 def books_search_action (request: wsgi.WSGIRequest):
     if request.method=="POST":
         print(request.body)
@@ -173,17 +224,98 @@ def books_search_action (request: wsgi.WSGIRequest):
         list_details = [] 
         for key in books_result.values_list("ISBN"):
             list_details.append(key[0])
-        print(list_details)
+        current_user_object = User.objects.get(username=current_user["username"])
         copies_result = BookCopy.objects.filter(details__in=list_details)
         if search_data["is_available"]:
             copies_result = copies_result.filter(is_available=True)
         if search_data["is_borrowed"]:
             copies_result = copies_result.exclude(borrowed_by_id__isnull=True)
-        
+            if (not current_user["is_admin"]):
+                copies_result = copies_result.filter(borrowed_by=current_user_object)
+        copies_result = copies_result.order_by("-is_available")
         context: dict = {
             "books": copies_result,
+            "user": current_user_object,
         }
 
         return(render(request, 'BooksResults.html', context))
+    else:
+        return(JsonResponse({"error":"invalid request"}))
+    
+
+@csrf_exempt
+def get_current_book(request: wsgi.WSGIRequest):
+    if request.method=="POST":
+        current_user = dict(json.loads(request.body))["user"]
+        result = User.validate_permissions(current_user)
+        if(result["valid"]):
+            current_selected_book:BookDetails = None
+            current_selected_book_copy: BookCopy = None
+            if (BookCopy.objects.filter(ID=dict(json.loads(request.body))["copy_id"])):
+                current_selected_book_copy = BookCopy.objects.get(ID=dict(json.loads(request.body))["copy_id"])
+            if (current_selected_book_copy.details):
+                current_selected_book = current_selected_book_copy.details
+            result["current_selected_book"]=model_to_dict(current_selected_book)
+            result["current_selected_book_copy"]=model_to_dict(current_selected_book_copy)
+        return(JsonResponse(result))
+    else:
+        return(JsonResponse({"error":"invalid request"}))
+    
+@csrf_exempt
+def borrow_book(request: wsgi.WSGIRequest):
+    if request.method=="POST":
+        current_user = dict(json.loads(request.body))["user"]
+        result = User.validate_permissions(current_user)
+        if(result["valid"]):
+            current_selected_book_copy:BookCopy = None
+            current_user_model: User = None
+            if (BookCopy.objects.filter(ID=dict(json.loads(request.body))["copy_id"])):
+                current_selected_book_copy = BookCopy.objects.get(ID=dict(json.loads(request.body))["copy_id"])
+            if (User.objects.filter(username = current_user["username"])):
+                current_user_model = User.objects.get(username = current_user["username"])
+            print(model_to_dict(current_user_model))
+            current_selected_book_copy.borrowed_by = current_user_model
+            current_selected_book_copy.is_available = False
+            next_week = datetime.datetime.now() + datetime.timedelta(days=7)
+            current_selected_book_copy.due_date = next_week
+            current_selected_book_copy.save()
+            result["message"]="This book has been borrowed!"
+        return(JsonResponse(result))
+    else:
+        return(JsonResponse({"error":"invalid request"}))
+    
+@csrf_exempt
+def return_book(request: wsgi.WSGIRequest):
+    if request.method=="POST":
+        current_user = dict(json.loads(request.body))["user"]
+        result = User.validate_permissions(current_user)
+        if(result["valid"]):
+            current_selected_book_copy:BookCopy = None
+            current_user_model: User = None
+            if (BookCopy.objects.filter(ID=dict(json.loads(request.body))["copy_id"])):
+                current_selected_book_copy = BookCopy.objects.get(ID=dict(json.loads(request.body))["copy_id"])
+            
+            current_selected_book_copy.borrowed_by = None
+            current_selected_book_copy.is_available = True
+            current_selected_book_copy.due_date = None
+            current_selected_book_copy.save()
+            result["message"]="This book has been returned!"
+        return(JsonResponse(result))
+    else:
+        return(JsonResponse({"error":"invalid request"}))
+
+@csrf_exempt
+def delete_book(request: wsgi.WSGIRequest):
+    if request.method=="POST":
+        current_user = dict(json.loads(request.body))["user"]
+        result = User.validate_permissions(current_user)
+        if(result["valid"]):
+            current_selected_book_copy:BookCopy = None
+            current_user_model: User = None
+            if (BookCopy.objects.filter(ID=dict(json.loads(request.body))["copy_id"])):
+                current_selected_book_copy = BookCopy.objects.get(ID=dict(json.loads(request.body))["copy_id"])
+            current_selected_book_copy.delete()
+            result["message"]="This book has been deleted!"
+        return(JsonResponse(result))
     else:
         return(JsonResponse({"error":"invalid request"}))

@@ -1,23 +1,43 @@
-    <div id="books-list">
-        <div class="book">
-            <h2>ISBN: 978-1908745903</h2>
-            <h2>Tomb of Sand</h2>
-            <p>Author: Geetanjali Shree</p>
-            <p>Category: Literature</p>
-            <p>Description: The story is centred on a family in Delhi, with the focus on 80-year old widowed Ma.</p>
-            <p>Publisher: Tilted Axis Press</p>
-            <p>Published Date: March 30, 2021</p>
+{% for copy in books %}
+    <div id= "{{ copy.ID }}-book-copy" class="book-item">
+        <div class="book-title">{{ copy.details.title }}</div>
+        <div>ISBN: {{ copy.details.ISBN }}</div>
+        <div>Category: {{ copy.details.category }}</div>
+        <div>Authors: {{ copy.details.authors }}</div>
+        <div>Publisher: {{ copy.details.publisher }}</div>
+        <div>Published Date: {{ copy.details.published_date }}</div>
+        <div>Description: {{ copy.details.description }}</div>
+        {% if copy.is_available%}
+        <div class="available">
+            This Book is currently available
         </div>
-        <div class="bookCopy">
-            <h2>ISBN: 978-1908745903</h2>
-            <h2>Cursed Bunny</h2>
-            <p>Author: Bora Chung</p>
-            <p>Category: Short Stories</p>
-            <p>Description: A journey of revenge against the family of a wealthy CEO who has destroyed lives with his greedy actions</p>
-            <p>Publisher: Honford Star</p>
-            <p>Published Date: July 15, 2021</p>
+        {%else%}
+        <div class="not-available">
+            This Book is currently not available
+        </div>
+        {% endif %}
+        <div>
+             Print Date: {{ copy.printed_date }}
+        </div>
+        {% if not copy.is_available%}
+            <div>
+                Borrowed By: {{ copy.borrowed_by.username }}
+            </div>
+            <div>
+                Due Date: {{ copy.due_date }}
+            </div>
+        {% endif %}
+        <div class="book-actions">
+            {% if user.is_admin%}
+            <button class="edit-book" onclick="handle_tap(this);">Edit Book</button>
+            <button class="delete-book" onclick="handle_tap(this);">Delete Book</button>
+            {% else %}
+                {% if copy.is_available%}
+                    <button class="borrow-action" onclick="handle_tap(this);">Borrow</button>
+                {%elif copy.borrowed_by == user%}
+                    <button class="return-action" onclick="handle_tap(this);">Return Book</button>
+                {% endif %}
+            {% endif %}
         </div>
     </div>
-{% for copy in books %}
-    <li>{{ copy.ID }} {{ copy.details.ISBN }} {{ copy.details.title }} {{ copy.details.category }} {{ copy.details.description }} {{ copy.details.publisher }} {{ copy.details.published_date }} {{ copy.printed_date }} {{ copy.is_available }}</li>
 {% endfor %}
