@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
+        <title>
+            Online Library - {% block title_extension %}{% endblock %}
+        </title>
+        <link rel="icon" type="image/x-icon" href="{% static 'Images/Icons/Library.png' %}">
+        <link rel="stylesheet" href="{% static 'CSS Source/Templetes/Basic.css' %}">
+        {% block css_extension %}{% endblock %}
+        <script src="{% static 'JS Source/Templetes/Basic.js' %}"></script>
+        <script>pre_body_load();</script>
+        {% block js_extension %}{% endblock %}
+    </head>
+    <body>
+        <header>
+            <div id = "head_title">
+                <h1>
+                    Online Library
+                </h1>
+            </div>
+        </header>
+        <nav id="NavBar">
+            <ul>
+                <li>
+                    <div>
+                        <img src="{% static 'Images/Users/User/Profile.png' %}" alt = "Profile Image" id="open-profile" class="pressable" onclick="handle_tap(this)">
+                    </div>
+                </li>
+                <li >
+                    <button type="button" title="Open Home" id="open-home" class="" onclick="handle_tap(this)">
+                        Home 
+                    </button>
+                </li>
+                <li>
+                    <button type="button" title="Open Books" id="open-books" onclick="handle_tap(this)"><!-- was open-tasks -->
+                        Books
+                    </button>
+                </li>
+                <li class="not-used">
+                    <button type="button" title="Open Research" id="open-research" onclick="handle_tap(this)">
+                        Research
+                    </button>
+                </li>
+                <li class="not-used">
+                    <button type="button" title="Open About" id="open-about" onclick="handle_tap(this)">
+                        About
+                    </button>
+                </li>
+                <li class="basic-search">
+                    <form>
+                        <div>
+                            <input type="text" id= "SearchField" placeholder="Elementary Maths">
+                        
+                        <div class="column-flex">
+                            <div>
+                                <select id="SearchType" name="SearchType" title="Search Type">
+                                    <option value="Profile" class="not-used">Profile</option>
+                                    <option value="Books" selected>Books</option>
+                                    <option value="Meeting" class="not-used">Meeting</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button type="button" title="Search" id= "Search" onclick="handle_tap(this)">
+                                    <label for="Search">
+                                        <div>
+                                            <img src="{% static 'Images/Icons/Search.png' %}" alt="Search Icon"/>
+                                        </div>
+                                        <div>Search</div>
+                                    </label>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </li>
+                
+            </ul>
+        </nav>
+        <div id="profile-handler" class = 'float-box not-used'>
+        </div>
+        <hr/>
+        <main>
+            <article onclick="handle_tap(this)">
+                <div>
+                    {% block content %}{% endblock %}
+                </div>
+            </article>
+            <aside onclick="handle_tap(this)">
+                <img src="{% static 'Images/Icons/right_arrow.png' %}" alt="Arrow" onclick="show_hide_side()">
+                <div>
+                    <h2> Announcements </h2>
+                    <ul>
+                        <li>There will be a night shift today. Prepare your tents.</li>
+                        <li>The books have been updated, recently.</li>
+                        <li>There was a data leak do not forget to change your websites.</li>
+                        <li>The summer book competitions is open.</li>
+                        <li>You can now manage research.</li>
+                        <li>This is the first launch of the website.</li>
+                    </ul>
+                </div>
+            </aside>
+        </main>
+        <footer onclick="handle_tap(this)">
+            <hr/>
+            <div>
+                <h4>Contact Us:</h4>
+                <p id="Contacts">
+                    <i>20, Cairo Uneversity ST, Giza</i><br/>
+                    Tel:<b>+201114435107</b><br/>
+                    <h4><b>Mail The Library:</b></h4>
+                        <ul>
+                            <li><a href="mailto:mohamedwali9091@gmail.com">Library Chef</a></li>
+                            <li><a href="mailto:jonathanmokhles@gmail.com">Culture Office</a></li>
+                            <li><a href="mailto:lokliehchuol@gmail.com">HR Department</a></li>
+                        </ul>
+                </p>
+                <ul>
+                    <li><a href="{% static 'Credits.pdf' %}" target="_blank">Credits</a></li>
+                    <li><a href="{% static 'LICENSE' %}" target="_blank">License</a></li>
+                    <li><a href="#head_title">Back to the Top of the Page.</a></li>
+                    
+                </ul>
+            </div>
+        </footer>
+        <div id="document-handler" class="not-used">
+
+        </div>
+        {% block post_js_extension %}{% endblock %}
+        <script>post_load();</script>
+    </body>
+</html>

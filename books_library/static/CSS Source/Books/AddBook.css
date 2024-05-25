@@ -1,0 +1,8 @@
+#addBookForm{
+    display: flex;
+    flex-direction: column;
+}
+#addBookForm > *{
+    display: block;
+    align-self: center;
+}

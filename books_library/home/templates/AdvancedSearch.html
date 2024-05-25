@@ -1,0 +1,52 @@
+{% load static %}
+<h1>Advanced Search</h1>
+<div id="advanced-search-section">
+    <div>
+        <label for="title-search-field">Title: </label>
+        <div>
+            <div>
+                <div>
+                    <input type="text" id= "title-search-field" placeholder="maths">
+                </div>
+                <div id="autocomplete-handler" class = 'not-used'>
+                    <div>test</div>
+                    <div>test</div>
+                </div>
+            </div>
+        </div>
+        <label for="category-search-field">Category: </label>
+        <div>
+            <div>
+                <div>
+                    <input type="text" id= "category-search-field" placeholder="all">
+                </div>
+            </div>
+        </div>
+        <label for="author-search-field">Author: </label>
+        <div>
+            <div>
+                <div>
+                    <input type="text" id= "author-search-field" placeholder="all">
+                </div>
+            </div>
+        </div>
+        <div>
+            <button type="button" title="Search" id= "advanced-search" onclick="handle_tap(this)">
+                <label for="advanced-search">
+                    <div>
+                        <img src="{% static '/Images/Icons/Search.png' %}" alt="Search Icon"/>
+                    </div>
+                    Search
+                </label>
+            </button>
+        </div>
+        <label for="available-only">Available Only:</label>
+        <div>
+            <input type="checkbox" id="available-only" name="Available Only">
+        </div>
+        <label for="borrowed">Borrowed: </label>
+        <div>
+            <input type="checkbox" id="borrowed" name="Borrowed">
+        </div>
+    </div>
+</div>

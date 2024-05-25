@@ -1,0 +1,71 @@
+{% extends "Basic.html" %}
+{% block title_extension %}Sign-Up{% endblock %}
+{% load static %}
+{% block css_extension %}
+    <link rel="stylesheet" href="{% static 'CSS Source/Profile_Settings.css'%}">
+{% endblock %}
+{% block js_extension %}
+    <script src="{% static 'JS Source/Profile_Settings.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<h1>Profile Settings</h1>
+<form class="profil-setiing">
+    <table cellpadding="2">
+        <tbody>
+            <tr>
+                <td><label for ="full-name">Full Name: </label></td>
+                <td><input type="text" id="full-name" name="full-name" autocomplete="username"></td>
+            </tr>
+            <tr>
+                <td><label for ="email">Email: </label></td>
+                <td><input type="email" id="email" name="Email" autocomplete="email"></td>
+            </tr>
+            <tr>
+                <td><label for ="birth-date">Birth Date: </label></td>
+                <td><input type="date" id="birth-date" name="birth-date"></td>
+            </tr>
+            <tr>
+                <td><label for ="address">Address: </label></td>
+                <td><input type="text" id="address" name="address"></td>
+            </tr>
+            <tr>
+                <td><label for="is_admin">Admin User?</label></td>
+                <td><input type="checkbox" id="is_admin" name="is_admin"></td>
+            </tr>
+            <tr>
+                <td colspan="2"><hr/></td>
+            </tr>
+            <tr>
+                <td><label for="profile-image">Profile Image:</label></td>
+                <td><input type="url" id="profile-image" name="Profile Image" placeholder="Enter Image URL"></td>
+            </tr>
+            <tr>
+                <td><label for="website-view">Website View:</label></td>
+                <td>
+                    <select id="website-view" name="Website View", title="Select your disired view for the website">
+                        <option value="" selected>Default</option>
+                        <option value="Dark">Dark Mode</option>
+                        <option value="View1">View I</option>
+                        <option value="View2">View II</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><hr/></td>
+            </tr>
+            <tr>
+                <td><input class="positive" id="save" type="button" value="save" onclick="profile_handle_buttons(this)"></td>
+                <td><input class="negative" id="cancel" type="button" value="cancel" onclick="profile_handle_buttons(this)"></td>
+            </tr>
+            <tr>
+                <input type="button" id="change-password" value="change password" onclick="profile_handle_buttons(this)">
+            </tr>
+        </tbody>
+    </table>
+</form>
+{% endblock %}
+{% block post_js_extension %}
+    <script>current_data();</script>
+    <script>show_hide_side();</script>
+{% endblock %}

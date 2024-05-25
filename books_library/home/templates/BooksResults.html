@@ -1,0 +1,43 @@
+{% for copy in books %}
+    <div id= "{{ copy.ID }}-book-copy" class="book-item">
+        <div class="book-title">{{ copy.details.title }}</div>
+        <div>ISBN: {{ copy.details.ISBN }}</div>
+        <div>Category: {{ copy.details.category }}</div>
+        <div>Authors: {{ copy.details.authors }}</div>
+        <div>Publisher: {{ copy.details.publisher }}</div>
+        <div>Published Date: {{ copy.details.published_date }}</div>
+        <div>Description: {{ copy.details.description }}</div>
+        {% if copy.is_available%}
+        <div class="available">
+            This Book is currently available
+        </div>
+        {%else%}
+        <div class="not-available">
+            This Book is currently not available
+        </div>
+        {% endif %}
+        <div>
+             Print Date: {{ copy.printed_date }}
+        </div>
+        {% if not copy.is_available%}
+            <div>
+                Borrowed By: {{ copy.borrowed_by.username }}
+            </div>
+            <div>
+                Due Date: {{ copy.due_date }}
+            </div>
+        {% endif %}
+        <div class="book-actions">
+            {% if user.is_admin%}
+            <button class="edit-book" onclick="handle_tap(this);">Edit Book</button>
+            <button class="delete-book" onclick="handle_tap(this);">Delete Book</button>
+            {% else %}
+                {% if copy.is_available%}
+                    <button class="borrow-action" onclick="handle_tap(this);">Borrow</button>
+                {%elif copy.borrowed_by == user%}
+                    <button class="return-action" onclick="handle_tap(this);">Return Book</button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% endfor %}
