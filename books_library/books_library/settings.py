@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-bpx6c=z#&*!)cn*_x2e79hoj#8z$^n37^_+@j6%vgnl=yul_-9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'onlinelibrary.local', '192.168.1.10', '*']
 
 
 # Application definition
@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'home.middleware.RequestLoggerMiddleware',
 ]
 
 ROOT_URLCONF = 'books_library.urls'
@@ -125,3 +126,5 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+

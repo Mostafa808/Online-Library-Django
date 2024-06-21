@@ -103,14 +103,17 @@ class User(models.Model):
         return -1
     def validate_permissions(current_token):
         output = {"valid":True, "message":"Permissions are Granted"}
-        current_user = User.objects.filter(username = current_token["username"])
-        if current_user:
-            current_user = User.objects.get(username = current_token["username"])
-            if current_user.password!=current_token["password"]:
+        if current_token:
+            current_user = User.objects.filter(username = current_token["username"])
+            if current_user:
+                current_user = User.objects.get(username = current_token["username"])
+                if current_user.password!=current_token["password"]:
+                    output = {"valid":False, "message":"Access Denied"}
+                
+            else:
                 output = {"valid":False, "message":"Access Denied"}
-            
         else:
-            output = {"valid":False, "message":"Access Denied"}
+            output = {"valid":False, "message":"User is not signed-in"}
         return output
 
 

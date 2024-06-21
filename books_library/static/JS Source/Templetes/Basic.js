@@ -317,15 +317,39 @@ class book_UI{
     }
     static get_search_data(){
         search_data = new search_data_model();
-        search_data.title = document.getElementById("title-search-field").value;
-        if(!search_data.title){
+        let advanced_title = document.getElementById("title-search-field");
+        if(!advanced_title){
             search_data.title = document.getElementById("SearchField").value;
-            document.getElementById("title-search-field").value = search_data.title;
+        }else{
+            search_data.title = advanced_title.value;
         }
-        search_data.category = document.getElementById("category-search-field").value;
-        search_data.author = document.getElementById("author-search-field").value;
-        search_data.is_available = document.getElementById("available-only").checked
-        search_data.is_borrowed = document.getElementById("borrowed").checked
+        let advanced_category = document.getElementById("category-search-field")
+        
+        if (!advanced_category){
+            search_data.category='';
+        }else{
+            search_data.category = advanced_category.value;
+        }
+        let advanced_author = document.getElementById("author-search-field");
+        if(!search_data.author){
+            search_data.author='';
+        }else{
+            search_data.author = advanced_author.value;
+        }
+        let advanced_is_available = document.getElementById("available-only");
+        
+        if(!advanced_is_available){
+            search_data.is_available = false;
+        }else{
+            search_data.is_available = advanced_is_available.checked;
+        }
+        let advanced_is_borrowed = document.getElementById("borrowed");
+        
+        if(!advanced_is_borrowed){
+            search_data.is_borrowed=false;
+        }else{
+            search_data.is_borrowed = advanced_is_borrowed.checked;
+        }
         basic_memory.set_object("search_data", search_data)
     }
 }
